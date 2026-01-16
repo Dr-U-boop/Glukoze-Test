@@ -1,118 +1,118 @@
-# Glukoze-Test Project Report
+# Отчет о проекте Glukoze-Test
 
-## 1. Introduction
-**Glukoze-Test** is a comprehensive medical application designed for glucose monitoring and patient management. It provides a real-time dashboard for tracking patient metrics, visualizing glucose trends, and generating medical recommendations. The system is built as a desktop application ensuring data privacy and offline capabilities where necessary, while leveraging web technologies for a responsive user interface.
+## 1. Введение
+**Glukoze-Test** — это комплексное медицинское приложение, разработанное для мониторинга уровня глюкозы и управления данными пациентов. Оно предоставляет панель управления в реальном времени для отслеживания показателей пациентов, визуализации трендов глюкозы и генерации медицинских рекомендаций. Система построена как настольное приложение, обеспечивающее конфиденциальность данных и возможность работы в автономном режиме, при этом использующее веб-технологии для создания отзывчивого пользовательского интерфейса.
 
-### Technology Stack
-- **Frontend**: Electron (Node.js) for the desktop shell, HTML/CSS/JS for the UI.
-- **Backend**: Python (FastAPI) running as a local server to handle logic, data processing, and database interactions.
-- **Database**: SQLite (`medical_app.db`) for lightweight, local data storage.
-- **Data format**: JSON for API communication.
+### Технологический стек
+- **Фронтенд (Frontend)**: Electron (Node.js) для оболочки рабочего стола, HTML/CSS/JS для пользовательского интерфейса.
+- **Бэкенд (Backend)**: Python (FastAPI), работающий как локальный сервер для обработки логики, данных и взаимодействия с базой данных.
+- **База данных**: SQLite (`medical_app.db`) для легковесного локального хранения данных.
+- **Формат данных**: JSON для взаимодействия через API.
 
 ---
 
-## 2. System Architecture
+## 2. Архитектура системы
 
-The application follows a client-server architecture where the "server" runs locally on the user's machine, managed by the Electron "client".
+Приложение следует клиент-серверной архитектуре, где "сервер" работает локально на машине пользователя и управляется "клиентом" Electron.
 
 ```mermaid
 graph TD
-    subgraph "Desktop Environment"
-        E["Electron App (Frontend)"]
-        P["Python Backend (FastAPI)"]
-        DB[(SQLite Database)]
+    subgraph "Рабочая среда (Desktop)"
+        E["Приложение Electron (Фронтенд)"]
+        P["Бэкенд Python (FastAPI)"]
+        DB[(База данных SQLite)]
     end
 
-    E -- "Spawns Process" --> P
-    E -- "HTTP Requests (REST API)" --> P
-    P -- "Reads/Writes" --> DB
-    P -- "JSON Responses" --> E
+    E -- "Запускает процесс" --> P
+    E -- "HTTP запросы (REST API)" --> P
+    P -- "Чтение/Запись" --> DB
+    P -- "Ответы JSON" --> E
     
-    subgraph "External/Simulation"
-        S[Glucose Simulator] -- "Data Stream" --> P
+    subgraph "Внешняя среда/Симуляция"
+        S[Симулятор Глюкозы] -- "Поток данных" --> P
     end
 ```
 
-### Communication Flow
-1. **Startup**: When the Electron app launches (`main.js`), it spawns the Python backend as a child process.
-2. **Handshake**: The frontend waits for the backend to signal readiness (via stdout "Uvicorn running").
-3. **Interaction**: The UI makes asynchronous `fetch` requests to `http://127.0.0.1:8000`.
-4. **Shutdown**: closing the Electron window kills the Python process to release resources.
+### Поток взаимодействия
+1. **Запуск**: При запуске приложения Electron (`main.js`), оно создает процесс Python backend как дочерний процесс.
+2. **Рукопожатие (Handshake)**: Фронтенд ожидает сигнала готовности от бэкенда (через stdout "Uvicorn running").
+3. **Взаимодействие**: Пользовательский интерфейс выполняет асинхронные запросы `fetch` к `http://127.0.0.1:8000`.
+4. **Завершение работы**: Закрытие окна Electron убивает процесс Python для освобождения ресурсов.
 
 ---
 
-## 3. Module Breakdown
+## 3. Описание модулей
 
-### Backend Modules (Python)
-Located in `backend/app/`:
-- **`main.py`**: Entry point. Configures FastAPI, CORS, and includes routers.
-- **`models.py`**: Pydantic models defining data structures (e.g., `Patient`, `UserToken`).
+### Модули Бэкенда (Python)
+Расположены в `backend/app/`:
+- **`main.py`**: Точка входа. Настраивает FastAPI, CORS и подключает роутеры.
+- **`models.py`**: Pydantic модели, определяющие структуры данных (например, `Patient`, `UserToken`).
 - **`routers/`**:
-    - **`auth.py`**: Handles user login and JWT token generation.
-    - **`patients.py`**: Core logic for listing, searching, and managing patient records.
-    - **`recommendations.py`**: Logic for parsing patient data and generating text-based recommendations.
-- **`analysis_utils.py`**: Helper functions for statistical analysis of glucose data.
+    - **`auth.py`**: Обрабатывает вход пользователя и генерацию JWT токенов.
+    - **`patients.py`**: Основная логика для списка, поиска и управления записями пациентов.
+    - **`recommendations.py`**: Логика для анализа данных пациентов и генерации текстовых рекомендаций.
+- **`analysis_utils.py`**: Вспомогательные функции для статистического анализа данных глюкозы.
 
-### Frontend Components (Electron/Web)
-Located in `frontend/`:
-- **`main.js`**: The Electron "Main Process". Handles window creation, native menus, and backend process management.
+### Компоненты Фронтенда (Electron/Web)
+Расположены в `frontend/`:
+- **`main.js`**: "Главный процесс" Electron. Обрабатывает создание окон, нативные меню и управление процессом бэкенда.
 - **`html/`**:
-    - `auth_page.html`: Login screen.
-    - `dashboard_page.html`: Main application interface.
+    - `auth_page.html`: Экран авторизации.
+    - `dashboard_page.html`: Основной интерфейс приложения.
 - **`js/`**:
-    - `dash_board.js`: interacting with the DOM, rendering charts (Chart.js or similar), and verifying tokens.
-- **`assets/`**: Static resources like icons and styles.
+    - `dash_board.js`: взаимодействие с DOM, отрисовка графиков (Chart.js) и проверка токенов.
+- **`assets/`**: Статические ресурсы, такие как иконки и стили.
 
 ---
 
-## 4. Logic & Data Flow
+## 4. Логика и Поток Данных
 
-The following flowchart illustrates the typical user session from login to data analysis.
+Следующая блок-схема иллюстрирует типичную сессию пользователя от входа в систему до анализа данных.
 
 ```mermaid
 flowchart LR
-    Start([Launch App]) --> Auth{"Authenticated?"}
-    Auth -- No --> Login[Login Screen]
-    Login -- "Credentials" --> API_Auth[POST /token]
-    API_Auth -- "Success + Token" --> Dashboard[Dashboard]
-    Auth -- Yes --> Dashboard
+    Start([Запуск приложения]) --> Auth{"Авторизован?"}
+    Auth -- Нет --> Login[Экран входа]
+    Login -- "Учетные данные" --> API_Auth[POST /token]
+    API_Auth -- "Успех + Токен" --> Dashboard[Панель управления]
+    Auth -- Да --> Dashboard
 
-    subgraph "Dashboard Activities"
-        Dashboard --> GetPatients[Fetch Patients List]
-        GetPatients --> Select[Select Patient]
-        Select --> Data[View Charts & Stats]
-        Select --> Recs[Get Recommendations]
+    subgraph "Действия на панели"
+        Dashboard --> GetPatients[Загрузка списка пациентов]
+        GetPatients --> Select[Выбор пациента]
+        Select --> Data[Просмотр графиков и статистики]
+        Select --> Recs[Получение рекомендаций]
     end
 
-    subgraph "Background"
-        Sim[Simulator] -- "New Glucose Data" --> DB[(Database)]
+    subgraph "Фон"
+        Sim[Симулятор] -- "Новые данные глюкозы" --> DB[(База данных)]
         DB --> Data
     end
 ```
 
 ---
 
-## 5. API & Database
+## 5. API и База Данных
 
-The backend exposes a RESTful API. Key endpoints include:
+Бэкенд предоставляет RESTful API. Ключевые эндпоинты включают:
 
-- **Auth**: `POST /token` - Validates credentials and returns an access token.
+- **Auth**: `POST /token` - Проверяет учетные данные и возвращает токен доступа.
 - **Patients**:
-  - `GET /patients/` - Retrieve all patients (supports filtering).
-  - `GET /patients/{id}` - Get detailed info for a specific patient.
-- **Recommendations**: `POST /recommendations/analyze` - Analyze provided metrics and return advice.
+  - `GET /patients/` - Получить всех пациентов (поддерживает фильтрацию).
+  - `GET /patients/{id}` - Получить детальную информацию о конкретном пациенте.
+- **Recommendations**: `POST /recommendations/analyze` - Анализировать предоставленные метрики и вернуть советы.
 
-#### Database Schema Details
+#### Детали схемы базы данных
 
-The application uses SQLite (`medical_app.db`) with the following relational structure. key data fields (names, contact info, clinical notes) are encrypted at rest.
+Приложение использует SQLite (`medical_app.db`) со следующей реляционной структурой. Ключевые поля данных (имена, контактная информация, клинические записи) шифруются при хранении.
 
 ```mermaid
 erDiagram
-    DOCTORS ||--o{ PATIENTS : "manages"
-    PATIENTS ||--o{ MEDICAL_RECORDS : "has"
-    PATIENTS ||--o{ TIMESERIES_DATA : "logs"
-    PATIENTS ||--|| PATIENTS_PARAMETERS : "has"
-    PATIENTS ||--|| SIMULATOR_SCENARIOS : "has"
+    DOCTORS ||--o{ PATIENTS : "управляет (manages)"
+    PATIENTS ||--o{ MEDICAL_RECORDS : "имеет (has)"
+    PATIENTS ||--o{ TIMESERIES_DATA : "логирует (logs)"
+    PATIENTS ||--|| PATIENTS_PARAMETERS : "имеет (has)"
+    PATIENTS ||--|| SIMULATOR_SCENARIOS : "имеет (has)"
 
     DOCTORS {
         int id PK
@@ -159,47 +159,47 @@ erDiagram
     }
 ```
 
-#### Table Descriptions
+#### Описание таблиц
 
-1.  **`doctors`**: Stores authorized medical personnel.
-    *   `username`: Unique login identifier.
-    *   `hashed_password`: Bcrypt hash of the password.
-    *   `is_active`: Soft delete mechanism.
+1.  **`doctors`**: Хранит авторизованный медицинский персонал.
+    *   `username`: Уникальный идентификатор для входа.
+    *   `hashed_password`: Хэш пароля (Bcrypt).
+    *   `is_active`: Механизм мягкого удаления.
 
-2.  **`patients`**: Core patient records.
-    *   **Encryption**: `encrypted_full_name` and `encrypted_contact_info` ensure PII usage is secure.
-    *   `doctor_id`: Links the patient to their attending physician.
+2.  **`patients`**: Основные записи пациентов.
+    *   **Шифрование**: `encrypted_full_name` и `encrypted_contact_info` обеспечивают безопасность персональных данных (PII).
+    *   `doctor_id`: Связывает пациента с его лечащим врачом.
 
-3.  **`timeseries_data`**: High-frequency data storage.
-    *   Used for storing glucose readings, insulin boluses, and carb intake.
-    *   `record_type`: Distinguishes between 'glucose', 'insulin_bolus', 'carbs'.
-    *   `value`: The numeric value of the reading/dose.
+3.  **`timeseries_data`**: Хранилище высокочастотных данных.
+    *   Используется для хранения показаний глюкозы, болюсов инсулина и приема углеводов.
+    *   `record_type`: Различает 'glucose' (глюкоза), 'insulin_bolus' (инсулин), 'carbs' (углеводы).
+    *   `value`: Числовое значение показания/дозы.
 
 4.  **`patients_parameters` & `simulator_scenarios`**:
-    *   Store configuration for the physiological simulation engine.
-    *   Data is stored as encrypted JSON blobs to allow flexible parameter evolution without schema migrations.
+    *   Хранят конфигурацию для движка физиологической симуляции.
+    *   Данные хранятся как зашифрованные JSON-объекты, чтобы обеспечить гибкость изменения параметров без миграции схемы.
 
-#### Data Population (`seed_database.py`)
-The system includes a seeding script to populate the database for testing and demonstration:
-*   Generates 5 synthetic patients using `faker`.
-*   Simulates 30 days of continuous glucose monitoring (CGM) data (approx. 288 points per day).
-*   Simulates realistic scenarios:
-    *   **Meals**: 3 times a day (8:00, 13:00, 19:00) with random carb counts.
-    *   **Insulin**: Calculated bolus doses based on carb intake.
-    *   **Fluctuations**: Periodic random noise to mimic physiological variability.
+#### Заполнение данными (`seed_database.py`)
+Система включает скрипт для заполнения базы данных тестовыми и демонстрационными данными:
+*   Генерирует 5 синтетических пациентов используя `faker`.
+*   Симулирует 30 дней непрерывного мониторинга глюкозы (CGM) (примерно 288 точек в день).
+*   Симулирует реалистичные сценарии:
+    *   **Прием пищи**: 3 раза в день (8:00, 13:00, 19:00) со случайным количеством углеводов.
+    *   **Инсулин**: Расчетные дозы болюса на основе потребления углеводов.
+    *   **Флуктуации**: Периодический случайный шум для имитации физиологической изменчивости.
 
 ---
 
-### 6. File Interactions & Data Flow
+## 6. Взаимодействие файлов и Поток Данных
 
-This section details how different code modules interact to fulfill user requests, from the UI down to the database.
+Этот раздел детализирует, как различные модули кода взаимодействуют для выполнения запросов пользователя, от интерфейса до базы данных.
 
-#### Module Dependencies
-The following diagram maps the import relationships and control flow between key files.
+#### Зависимости модулей
+Следующая диаграмма отображает отношения импорта и поток управления между ключевыми файлами.
 
 ```mermaid
 classDiagram
-    note "Arrows indicate Dependency / Import"
+    note "Стрелки указывают на Зависимость / Импорт"
     
     class ElectronMain["frontend/main.js"] {
         +createWindow()
@@ -222,18 +222,18 @@ classDiagram
         +TimeSeriesDataPoint
     }
     class Database["medical_app.db"] {
-        <<SQLite File>>
+        <<Файл SQLite>>
     }
 
-    ElectronMain ..> BackendMain : Spawns Process
-    FrontendUI ..> BackendMain : HTTP Requests
-    BackendMain --> PatientRouter : Includes Router
-    PatientRouter --> Models : Uses Schemas
-    PatientRouter --> Database : SQL Queries
+    ElectronMain ..> BackendMain : Запускает процесс
+    FrontendUI ..> BackendMain : HTTP запросы
+    BackendMain --> PatientRouter : Подключает Router
+    PatientRouter --> Models : Использует Схемы
+    PatientRouter --> Database : SQL запросы
 ```
 
-#### Detailed Data Sequence: Fetching Patient Glucose
-Tracing the data flow when a user selects a patient and views their glucose chart.
+#### Детальная последовательность данных: Получение данных глюкозы
+Отслеживание потока данных, когда пользователь выбирает пациента и просматривает график глюкозы.
 
 ```mermaid
 sequenceDiagram
@@ -243,61 +243,61 @@ sequenceDiagram
     participant DB as SQLite (medical_app.db)
 
     UI->>API: GET /api/patients/{id}/glucose_data
-    API->>Router: Delegate to get_patient_glucose_data()
+    API->>Router: Передача в get_patient_glucose_data()
     
     Router->>DB: SELECT id FROM patients...
-    DB-->>Router: Patient Exists (ID)
+    DB-->>Router: Пациент существует (ID)
 
     Router->>DB: SELECT * FROM timeseries_data...
-    note right of DB: Filter by record_type='glucose'<br/>and date range
-    DB-->>Router: Returns Rows [(timestamp, value)...]
+    note right of DB: Фильтр по record_type='glucose'<br/>и диапазону дат
+    DB-->>Router: Возврат строк [(timestamp, value)...]
 
-    Router-->>API: Returns JSON {labels: [...], data: [...]}
+    Router-->>API: Возврат JSON {labels: [...], data: [...]}
     API-->>UI: HTTP 200 OK (JSON)
     
-    UI->>UI: Update Chart.js Instance
+    UI->>UI: Обновление экземпляра Chart.js
 ```
 
 ---
 
-## 7. Interface Walkthrough
+## 7. Обзор Интерфейса
 
-### Authentication
-The entry point of the application ensures secure access.
-![Login Screen](images/Авторизация.png)
+### Аутентификация
+Точка входа в приложение, обеспечивающая безопасный доступ.
+![Экран входа](images/Авторизация.png)
 
-### Dashboard & Patient Management
-The main dashboard provides a holistic view of the patient population.
-- **Patient Lists**:
-  ![Patient List 1](images/Список_1.png)
-  *(Alternative Views)*:
-  ![Patient List 2](images/Список_2.png)
-  ![Patient List 3](images/Список_3.png)
+### Панель управления и Управление пациентами
+Главная панель предоставляет целостный вид на популяцию пациентов.
+- **Списки пациентов**:
+  ![Список пациентов 1](images/Список_1.png)
+  *(Альтернативные виды)*:
+  ![Список пациентов 2](images/Список_2.png)
+  ![Список пациентов 3](images/Список_3.png)
 
-### Patient Analysis Panels
-Detailed views for individual patient monitoring.
-![Main Panel](images/Панель_1.png)
-![Secondary Panel](images/Панель_2.png)
+### Панели Анализа Пациента
+Детальные виды для индивидуального мониторинга пациента.
+![Главная панель](images/Панель_1.png)
+![Вторичная панель](images/Панель_2.png)
 
-### Detailed Windows & Cards
-Specific modules for deep-diving into patient metrics.
-![Detail Window 1](images/Окно_1.png)
-![Detail Window 2](images/Окно_2.png)
-![Patient Card](images/Карточка_1.png)
+### Детальные Окна и Карточки
+Специфические модули для глубокого погружения в метрики пациента.
+![Детальное окно 1](images/Окно_1.png)
+![Детальное окно 2](images/Окно_2.png)
+![Карточка пациента](images/Карточка_1.png)
 
-### Analytics & Visualizations
-Comprehensive graphing capabilities to track glucose trends over time.
-![Graph 1](images/График_1.png)
-![Graph 2](images/График_2.png)
-![Graph 3](images/График_3.png)
-![Graph 4](images/График_4.png)
-![Graph 5](images/График_5.png)
+### Аналитика и Визуализация
+Обширные возможности построения графиков для отслеживания трендов глюкозы во времени.
+![График 1](images/График_1.png)
+![График 2](images/График_2.png)
+![График 3](images/График_3.png)
+![График 4](images/График_4.png)
+![График 5](images/График_5.png)
 
-### Medical Recommendations
-Automated analysis suggesting courses of action based on data patterns.
-![Recommendations](images/Рекомендации.png)
+### Медицинские Рекомендации
+Автоматизированный анализ, предлагающий план действий на основе паттернов данных.
+![Рекомендации](images/Рекомендации.png)
 
-### Simulation Mode
-Tools for simulating patient glucose levels for testing or predictive modeling.
-![Simulator Main](images/Симулятор_1.png)
-![Simulator Settings](images/Симулятор_2.png)
+### Режим Симуляции
+Инструменты для симуляции уровней глюкозы пациента для тестирования или прогностического моделирования.
+![Главная симулятора](images/Симулятор_1.png)
+![Настройки симулятора](images/Симулятор_2.png)
