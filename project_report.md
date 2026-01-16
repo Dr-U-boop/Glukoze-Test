@@ -118,29 +118,29 @@ The entry point of the application ensures secure access.
 ### Dashboard & Patient Management
 The main dashboard provides a holistic view of the patient population.
 - **Patient Lists**:
-  ![Patient List 1](images/Список 1.png)
+  ![Patient List 1](images/Список_1.png)
   *(Alternative Views)*:
-  ![Patient List 2](images/Список 2.png)
-  ![Patient List 3](images/Список 3.png)
+  ![Patient List 2](images/Список_2.png)
+  ![Patient List 3](images/Список_3.png)
 
 ### Patient Analysis Panels
 Detailed views for individual patient monitoring.
-![Main Panel](images/Панель 1.png)
-![Secondary Panel](images/Панель 2.png)
+![Main Panel](images/Панель_1.png)
+![Secondary Panel](images/Панель_2.png)
 
 ### Detailed Windows & Cards
 Specific modules for deep-diving into patient metrics.
-![Detail Window 1](images/Окно 1.png)
-![Detail Window 2](images/Окно 2.png)
-![Patient Card](images/Карточка 1.png)
+![Detail Window 1](images/Окно_1.png)
+![Detail Window 2](images/Окно_2.png)
+![Patient Card](images/Карточка_1.png)
 
 ### Analytics & Visualizations
 Comprehensive graphing capabilities to track glucose trends over time.
-![Graph 1](images/График 1.png)
-![Graph 2](images/График 2.png)
-![Graph 3](images/График 3.png)
-![Graph 4](images/График 4.png)
-![Graph 5](images/График 5.png)
+![Graph 1](images/График_1.png)
+![Graph 2](images/График_2.png)
+![Graph 3](images/График_3.png)
+![Graph 4](images/График_4.png)
+![Graph 5](images/График_5.png)
 
 ### Medical Recommendations
 Automated analysis suggesting courses of action based on data patterns.
@@ -148,5 +148,5 @@ Automated analysis suggesting courses of action based on data patterns.
 
 ### Simulation Mode
 Tools for simulating patient glucose levels for testing or predictive modeling.
-![Simulator Main](images/Симулятор 1.png)
-![Simulator Settings](images/Симулятор 2.png)
+![Simulator Main](images/Симулятор_1.png)
+![Simulator Settings](images/Симулятор_2.png)
