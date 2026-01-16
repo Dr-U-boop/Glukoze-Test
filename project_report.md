@@ -190,7 +190,77 @@ The system includes a seeding script to populate the database for testing and de
 
 ---
 
-## 6. Interface Walkthrough
+### 6. File Interactions & Data Flow
+
+This section details how different code modules interact to fulfill user requests, from the UI down to the database.
+
+#### Module Dependencies
+The following diagram maps the import relationships and control flow between key files.
+
+```mermaid
+classDiagram
+    note "Arrows indicate Dependency / Import"
+    
+    class ElectronMain["frontend/main.js"] {
+        +createWindow()
+        +spawn(python)
+    }
+    class FrontendUI["frontend/js/dashboard_page.js"] {
+        +fetch(/api/patients)
+        +renderChart()
+    }
+    class BackendMain["backend/app/main.py"] {
+        +FastAPI()
+        +include_router()
+    }
+    class PatientRouter["backend/app/routers/patients.py"] {
+        +get_my_patients()
+        +get_patient_glucose_data()
+    }
+    class Models["backend/app/models.py"] {
+        +PatientDisplay
+        +TimeSeriesDataPoint
+    }
+    class Database["medical_app.db"] {
+        <<SQLite File>>
+    }
+
+    ElectronMain ..> BackendMain : Spawns Process
+    FrontendUI ..> BackendMain : HTTP Requests
+    BackendMain --> PatientRouter : Includes Router
+    PatientRouter --> Models : Uses Schemas
+    PatientRouter --> Database : SQL Queries
+```
+
+#### Detailed Data Sequence: Fetching Patient Glucose
+Tracing the data flow when a user selects a patient and views their glucose chart.
+
+```mermaid
+sequenceDiagram
+    participant UI as Dashboard (dashboard_page.js)
+    participant API as FastAPI (main.py)
+    participant Router as Patient Router (patients.py)
+    participant DB as SQLite (medical_app.db)
+
+    UI->>API: GET /api/patients/{id}/glucose_data
+    API->>Router: Delegate to get_patient_glucose_data()
+    
+    Router->>DB: SELECT id FROM patients...
+    DB-->>Router: Patient Exists (ID)
+
+    Router->>DB: SELECT * FROM timeseries_data...
+    note right of DB: Filter by record_type='glucose'<br/>and date range
+    DB-->>Router: Returns Rows [(timestamp, value)...]
+
+    Router-->>API: Returns JSON {labels: [...], data: [...]}
+    API-->>UI: HTTP 200 OK (JSON)
+    
+    UI->>UI: Update Chart.js Instance
+```
+
+---
+
+## 7. Interface Walkthrough
 
 ### Authentication
 The entry point of the application ensures secure access.
