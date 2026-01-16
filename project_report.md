@@ -18,8 +18,8 @@ The application follows a client-server architecture where the "server" runs loc
 ```mermaid
 graph TD
     subgraph "Desktop Environment"
-        E[Electron App (Frontend)]
-        P[Python Backend (FastAPI)]
+        E["Electron App (Frontend)"]
+        P["Python Backend (FastAPI)"]
         DB[(SQLite Database)]
     end
 
@@ -71,7 +71,7 @@ The following flowchart illustrates the typical user session from login to data 
 
 ```mermaid
 flowchart LR
-    Start([Launch App]) --> Auth{Authenticated?}
+    Start([Launch App]) --> Auth{"Authenticated?"}
     Auth -- No --> Login[Login Screen]
     Login -- "Credentials" --> API_Auth[POST /token]
     API_Auth -- "Success + Token" --> Dashboard[Dashboard]
