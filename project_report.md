@@ -102,10 +102,91 @@ The backend exposes a RESTful API. Key endpoints include:
   - `GET /patients/{id}` - Get detailed info for a specific patient.
 - **Recommendations**: `POST /recommendations/analyze` - Analyze provided metrics and return advice.
 
-**Database Schema (`medical_app.db`)**:
-- **Users**: Admin/Doctor accounts.
-- **Patients**: Patient demographics.
-- **GlucoseReadings**: Time-series data connected to Patients.
+#### Database Schema Details
+
+The application uses SQLite (`medical_app.db`) with the following relational structure. key data fields (names, contact info, clinical notes) are encrypted at rest.
+
+```mermaid
+erDiagram
+    DOCTORS ||--o{ PATIENTS : "manages"
+    PATIENTS ||--o{ MEDICAL_RECORDS : "has"
+    PATIENTS ||--o{ TIMESERIES_DATA : "logs"
+    PATIENTS ||--|| PATIENTS_PARAMETERS : "has"
+    PATIENTS ||--|| SIMULATOR_SCENARIOS : "has"
+
+    DOCTORS {
+        int id PK
+        string username
+        string hashed_password
+        string full_name
+        string specialization
+    }
+
+    PATIENTS {
+        int id PK
+        int doctor_id FK
+        string encrypted_full_name "AES Encrypted"
+        string encrypted_contact_info "AES Encrypted"
+        date date_of_birth
+    }
+
+    MEDICAL_RECORDS {
+        int id PK
+        int patient_id FK
+        timestamp record_date
+        string encrypted_record_data "AES Encrypted"
+    }
+
+    TIMESERIES_DATA {
+        int id PK
+        int patient_id FK
+        timestamp timestamp
+        string record_type "glucose, carbs, insulin"
+        float value
+        string encrypted_details 
+    }
+
+    PATIENTS_PARAMETERS {
+        int id PK
+        int patient_id FK
+        string encrypted_parameters "JSON + AES"
+    }
+
+    SIMULATOR_SCENARIOS {
+        int id PK
+        int patient_id FK
+        string encrypted_scenario "JSON + AES"
+    }
+```
+
+#### Table Descriptions
+
+1.  **`doctors`**: Stores authorized medical personnel.
+    *   `username`: Unique login identifier.
+    *   `hashed_password`: Bcrypt hash of the password.
+    *   `is_active`: Soft delete mechanism.
+
+2.  **`patients`**: Core patient records.
+    *   **Encryption**: `encrypted_full_name` and `encrypted_contact_info` ensure PII usage is secure.
+    *   `doctor_id`: Links the patient to their attending physician.
+
+3.  **`timeseries_data`**: High-frequency data storage.
+    *   Used for storing glucose readings, insulin boluses, and carb intake.
+    *   `record_type`: Distinguishes between 'glucose', 'insulin_bolus', 'carbs'.
+    *   `value`: The numeric value of the reading/dose.
+
+4.  **`patients_parameters` & `simulator_scenarios`**:
+    *   Store configuration for the physiological simulation engine.
+    *   Data is stored as encrypted JSON blobs to allow flexible parameter evolution without schema migrations.
+
+#### Data Population (`seed_database.py`)
+The system includes a seeding script to populate the database for testing and demonstration:
+*   Generates 5 synthetic patients using `faker`.
+*   Simulates 30 days of continuous glucose monitoring (CGM) data (approx. 288 points per day).
+*   Simulates realistic scenarios:
+    *   **Meals**: 3 times a day (8:00, 13:00, 19:00) with random carb counts.
+    *   **Insulin**: Calculated bolus doses based on carb intake.
+    *   **Fluctuations**: Periodic random noise to mimic physiological variability.
 
 ---
 
