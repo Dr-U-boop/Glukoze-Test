@@ -1,0 +1,31 @@
+name: Convert Markdown to PDF
+
+on:
+  push:
+    branches:
+      - main  # Срабатывает при пуше в main
+  workflow_dispatch: # Позволяет запускать вручную
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Загружаем код из репозитория
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Конвертируем .md в .pdf
+      - name: Markdown to PDF
+        uses: baileyjm02/markdown-to-pdf@v1
+        with:
+          input_path: project_report.md        # Имя твоего файла
+          output_dir: output           # Папка, куда сохранится PDF
+          # Можно добавить файл стилей, если нужно:
+          # build_html: true
+
+      # 3. Сохраняем результат как артефакт GitHub (чтобы можно было скачать)
+      - name: Upload PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: converted-pdf
+          path: output/
