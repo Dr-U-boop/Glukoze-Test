@@ -1,31 +1,48 @@
-name: Convert Markdown to PDF
+name: Convert MD to PDF with Diagrams
 
 on:
   push:
-    branches:
-      - main  # Срабатывает при пуше в main
-  workflow_dispatch: # Позволяет запускать вручную
+    branches: [ main ]
 
 jobs:
-  convert:
+  build:
     runs-on: ubuntu-latest
     steps:
-      # 1. Загружаем код из репозитория
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Конвертируем .md в .pdf
-      - name: Markdown to PDF
-        uses: baileyjm02/markdown-to-pdf@v1
+      # 1. Устанавливаем Node.js (нужен для Mermaid)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          input_path: project_report.md        # Имя твоего файла
-          output_dir: output           # Папка, куда сохранится PDF
-          # Можно добавить файл стилей, если нужно:
-          # build_html: true
+          node-version: '20'
 
-      # 3. Сохраняем результат как артефакт GitHub (чтобы можно было скачать)
-      - name: Upload PDF
+      # 2. Устанавливаем Mermaid CLI для рендеринга диаграмм
+      - name: Install Mermaid CLI
+        run: npm install -g @mermaid-js/mermaid-cli
+
+      # 3. Устанавливаем Pandoc и LaTeX (для создания PDF)
+      - name: Install Pandoc and TeX Live
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended librsvg2-bin
+
+      # 4. Рендерим диаграммы Mermaid в картинки внутри MD
+      # Этот шаг ищет блоки mermaid и заменяет их на изображения перед конвертацией
+      - name: Render Mermaid diagrams
+        run: |
+          # Мы используем mmdc для конвертации. 
+          # Если файлов много, можно запустить цикл или использовать специальные плагины.
+          # Для одного файла:
+          mmdc -i project_report.md -o project_report_diag.md
+
+      # 5. Конвертируем финальный файл в PDF через Pandoc
+      - name: Convert MD to PDF
+        run: |
+          pandoc project_report_diag.md -o output/manual.pdf --pdf-engine=xelatex
+
+      - name: Upload result
         uses: actions/upload-artifact@v4
         with:
-          name: converted-pdf
-          path: output/
+          name: final-pdf
+          path: output/manual.pdf
