@@ -26,7 +26,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended librsvg2-bin
+# 1. Создаем файл настроек для Puppeteer
+      - name: Create Puppeteer Config
+        run: |
+          echo '{"args": ["--no-sandbox", "--disable-setuid-sandbox"]}' > puppeteer-config.json
 
+  
       # 4. Рендерим диаграммы Mermaid в картинки внутри MD
       # Этот шаг ищет блоки mermaid и заменяет их на изображения перед конвертацией
       - name: Render Mermaid diagrams
@@ -34,7 +39,7 @@ jobs:
           # Мы используем mmdc для конвертации. 
           # Если файлов много, можно запустить цикл или использовать специальные плагины.
           # Для одного файла:
-          mmdc -i project_report.md -o project_report_diag.md
+          mmdc -p puppeteer-config.json -i project_report.md -o project_report_diag.md
 
       # 5. Конвертируем финальный файл в PDF через Pandoc
       - name: Convert MD to PDF
