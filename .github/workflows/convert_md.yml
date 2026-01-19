@@ -11,22 +11,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Клонируем репозиторий
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Устанавливаем Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # 3. Устанавливаем Mermaid CLI
       - name: Install Mermaid CLI
         run: npm install -g @mermaid-js/mermaid-cli
 
-      # 4. Устанавливаем Pandoc, LaTeX и системные шрифты (DejaVu поддерживает кириллицу)
-      - name: Install Pandoc, TeX Live and Fonts
+      - name: Install Pandoc, LaTeX and Fonts
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -36,28 +32,37 @@ jobs:
             librsvg2-bin \
             fonts-dejavu
 
-      # 5. Конфиг для Puppeteer (чтобы Mermaid мог запустить браузер для рендера текста)
+      # ОЧИСТКА: Удаляем неразрывные пробелы, которые ломают текст в диаграммах
+      - name: Clean Markdown File
+        run: |
+          # Заменяем все неразрывные пробелы (\u00A0) на обычные
+          sed -i 's/\xc2\xa0/ /g' project_report.md
+
       - name: Create Puppeteer Config
         run: |
           echo '{"args": ["--no-sandbox", "--disable-setuid-sandbox"]}' > puppeteer-config.json
 
-      # 6. Генерируем изображения из диаграмм Mermaid
-      # Здесь мы используем ваш файл project_report.md
+      # РЕНДЕР: Генерируем диаграммы
       - name: Render Mermaid diagrams
         run: |
           mmdc -p puppeteer-config.json -i project_report.md -o project_report_rendered.md
 
-      # 7. Финальная конвертация в PDF
-      # Используем xelatex + DejaVu Serif для поддержки русского языка в тексте
+      # ИСПРАВЛЕНИЕ ПОДПИСЕЙ: Удаляем слово "diagram" из сгенерированных ссылок на картинки
+      # Это уберет текст "diagram" из подписи под рисунком в PDF
+      - name: Fix Diagram Captions
+        run: |
+          sed -i 's/\[diagram\]/\[\]/g' project_report_rendered.md
+
+      # КОНВЕРТАЦИЯ: В PDF
       - name: Convert MD to PDF
         run: |
           mkdir -p output
           pandoc project_report_rendered.md -o output/project_report.pdf \
             --pdf-engine=xelatex \
             -V mainfont="DejaVu Serif" \
-            -V lang=ru-RU
+            -V lang=ru-RU \
+            --listing
 
-      # 8. Загружаем готовый отчет
       - name: Upload PDF Artifact
         uses: actions/upload-artifact@v4
         with:
