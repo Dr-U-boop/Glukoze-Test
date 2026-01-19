@@ -32,36 +32,38 @@ jobs:
             librsvg2-bin \
             fonts-dejavu
 
-      # ОЧИСТКА: Удаляем неразрывные пробелы, которые ломают текст в диаграммах
+      # Более агрессивная очистка от любых невидимых символов Юникода
       - name: Clean Markdown File
         run: |
-          # Заменяем все неразрывные пробелы (\u00A0) на обычные
+          # Удаляем неразрывные пробелы и другие странные символы
+          perl -i -pe 's/[^\x00-\x7f\x80-\xff]//g' project_report.md
           sed -i 's/\xc2\xa0/ /g' project_report.md
 
       - name: Create Puppeteer Config
         run: |
           echo '{"args": ["--no-sandbox", "--disable-setuid-sandbox"]}' > puppeteer-config.json
 
-      # РЕНДЕР: Генерируем диаграммы
+      # РЕНДЕР: Теперь принудительно в PNG (-e png) и с высоким качеством (-s 3)
       - name: Render Mermaid diagrams
         run: |
-          mmdc -p puppeteer-config.json -i project_report.md -o project_report_rendered.md
+          mmdc -p puppeteer-config.json \
+               -i project_report.md \
+               -o project_report_rendered.md \
+               -e png \
+               -s 3
 
-      # ИСПРАВЛЕНИЕ ПОДПИСЕЙ: Удаляем слово "diagram" из сгенерированных ссылок на картинки
-      # Это уберет текст "diagram" из подписи под рисунком в PDF
+      # Исправляем подписи: убираем [diagram] и расширение .png в ссылках
       - name: Fix Diagram Captions
         run: |
           sed -i 's/\[diagram\]/\[\]/g' project_report_rendered.md
 
-      # КОНВЕРТАЦИЯ: В PDF
       - name: Convert MD to PDF
         run: |
           mkdir -p output
           pandoc project_report_rendered.md -o output/project_report.pdf \
             --pdf-engine=xelatex \
             -V mainfont="DejaVu Serif" \
-            -V lang=ru-RU \
-            --listing
+            -V lang=ru-RU
 
       - name: Upload PDF Artifact
         uses: actions/upload-artifact@v4
