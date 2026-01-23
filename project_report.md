@@ -67,7 +67,7 @@ graph TD
 Ниже представлена диаграмма, иллюстрирующая типичную сессию пользователя:
 
 ```mermaid
-flowchart LR
+flowchart TD
     Start([Запуск приложения]) --> Auth{"Авторизован?"}
     Auth -- Нет --> Login[Экран входа]
     Login -- "Учетные данные" --> API_Auth[POST /token]
