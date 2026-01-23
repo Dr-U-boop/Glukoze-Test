@@ -143,15 +143,34 @@ erDiagram
         date date_of_birth
     }
 
+    MEDICAL_RECORDS {
+        int id PK
+        int patient_id FK
+        timestamp record_date
+        string encrypted_record_data "AES Encrypted"
+    }
+
     TIMESERIES_DATA {
         int id PK
         int patient_id FK
         timestamp timestamp
         string record_type "glucose, carbs, insulin"
         float value
-        string encrypted_details
+        string encrypted_details 
     }
-```
+
+    PATIENTS_PARAMETERS {
+        int id PK
+        int patient_id FK
+        string encrypted_parameters "JSON + AES"
+    }
+
+    SIMULATOR_SCENARIOS {
+        int id PK
+        int patient_id FK
+        string encrypted_scenario "JSON + AES"
+    }
+
 
 3.13. Остальные файлы являются чисто служебными, поэтому здесь не описаны.
 
