@@ -170,6 +170,7 @@ erDiagram
         int patient_id FK
         string encrypted_scenario "JSON + AES"
     }
+```
 
 
 3.13. Остальные файлы являются чисто служебными, поэтому здесь не описаны.
